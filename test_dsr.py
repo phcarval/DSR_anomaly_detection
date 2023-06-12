@@ -184,10 +184,14 @@ def train_on_device(obj_names, mvtec_path, run_basename):
 
 
 if __name__=="__main__":
-    obj_names = ['capsule', 'bottle', 'grid', 'leather', 'pill', 'tile', 'transistor', 'zipper', 'cable', 'carpet',
+    aobj_names = ['capsule', 'bottle', 'grid', 'leather', 'pill', 'tile', 'transistor', 'zipper', 'cable', 'carpet',
                  'hazelnut', 'metal_nut', 'screw', 'toothbrush', 'wood']
+    
+
+    obj_names = ['bottle'] 
 
     list1 = sys.argv[1].split(',')
+    
 
     with torch.cuda.device(int(sys.argv[1])):
         train_on_device(obj_names, sys.argv[2], sys.argv[3])

@@ -78,9 +78,9 @@ def train_upsampling_module(model, sub_res_model_hi, sub_res_model_lo, model_dec
 
     loss_focal = FocalLoss()
 
-    dataset = MVTecImageAnomTrainDataset(mvtec_path + obj_name + "/train/good/", resize_shape=[256, 256])
+    dataset = MVTecImageAnomTrainDataset(mvtec_path + obj_name[0] + "/train/good/", resize_shape=[256, 256])
     dataloader = DataLoader(dataset, batch_size=batch_size,
-                            shuffle=True, num_workers=12)
+                            shuffle=True, num_workers=8) # 8 pour éviter le warning
 
     n_iter = 0.0
 
@@ -368,5 +368,6 @@ if __name__=="__main__":
     with torch.cuda.device(args.gpu_id):
         model, sub_res_model_hi, sub_res_model_lo, model_decode, decoder_seg = train_on_device(obj_batch[int(args.obj_id)],args.data_path, args.out_path, args.lr, args.bs, args.epochs)
         train_upsampling_module(model, sub_res_model_hi, sub_res_model_lo, model_decode, decoder_seg,
-                                obj_batch[int(args.obj_id)], args.data_path, args.out_path, args.lr, args.bs, args.epochs)
+                                obj_batch[int(args.obj_id)], args.data_path, args.out_path, args.lr, args.bs, args.epochs, 0.2)
+                                # added 0.2 parameter ("anom_par"), which is not in the program args
 
