@@ -56,7 +56,11 @@ def generate_fake_anomalies_joined(features,embeddings, memory_torch_original, m
 
 
 def train_upsampling_module(model, sub_res_model_hi, sub_res_model_lo, model_decode, decoder_seg, obj_name, mvtec_path, out_path, lr, batch_size, epochs, anom_par):
-    run_name = 'dsr_' + str(lr) + '_' + str(epochs) + '_bs' + str(batch_size) + "_anom_par" + str(anom_par) + "_"
+    run_name = 'dsr'
+    try:
+        run_name = 'dsr_' + str(lr) + '_' + str(epochs) + '_bs' + str(batch_size) + "_anom_par" + str(anom_par) + "_upsample_module_" + str(obj_name[0])
+    except:
+        run_name = 'dsr_upsample_naming_failed'
 
     embedding_dim = 128
     model.eval()
@@ -137,7 +141,7 @@ def train_upsampling_module(model, sub_res_model_hi, sub_res_model_lo, model_dec
         scheduler.step()
 
         if epoch % 5 == 0:
-            torch.save(model_upsample.state_dict(), out_path+"checkpoints/"+run_name+"_upsample.pckl")
+            torch.save(model_upsample.state_dict(), out_path+"checkpoints/"+run_name+".pckl")
 
 
 
