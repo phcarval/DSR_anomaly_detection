@@ -14,6 +14,10 @@ class VectorQuantizer(nn.Module):
         self._embedding = nn.Embedding(self._num_embeddings, self._embedding_dim)
         self._embedding.weight.data.normal_()
 
+        self.register_buffer('_ema_cluster_size', torch.zeros(num_embeddings))
+        self._ema_w = nn.Parameter(torch.Tensor(num_embeddings, self._embedding_dim))
+        self._ema_w.data.normal_()
+
     def forward(self, inputs):
         inputs = inputs.permute(0, 2, 3, 1).contiguous()
         input_shape = inputs.shape
