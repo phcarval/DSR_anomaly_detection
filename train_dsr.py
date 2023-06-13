@@ -106,8 +106,8 @@ def train_upsampling_module(model, sub_res_model_hi, sub_res_model_lo, model_dec
 
             anomaly_embedding_copy = embeddings.clone()
             anomaly_embedding_top_copy = embeddings_t.clone()
-            recon_feat, recon_embeddings, _ = sub_res_model_hi(anomaly_embedding_copy, embedder)
-            recon_feat_top, recon_embeddings_top, loss_b_top = sub_res_model_lo(anomaly_embedding_top_copy,
+            recon_feat, recon_embeddings = sub_res_model_hi(anomaly_embedding_copy, embedder)
+            recon_feat_top, recon_embeddings_top = sub_res_model_lo(anomaly_embedding_top_copy,
                                                                                 embedder_top)
 
             up_quantized_recon_t = model.upsample_t(recon_embeddings_top)
