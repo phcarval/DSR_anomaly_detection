@@ -149,13 +149,10 @@ def train_on_device(obj_names, mvtec_path, out_path, lr, batch_size, epochs):
     num_residual_layers = 2
     embedding_dim = 128
     num_embeddings = 4096
-    commitment_cost = 0.25
-    decay = 0.99
     anom_par = 0.2
 
     # Load the pretrained discrete latent model used.
-    model = DiscreteLatentModel(num_hiddens, num_residual_layers, num_residual_hiddens, num_embeddings, embedding_dim,
-                                commitment_cost, decay)
+    model = DiscreteLatentModel(num_hiddens, num_residual_layers, num_residual_hiddens, num_embeddings, embedding_dim)
     model.cuda()
     model.load_state_dict(torch.load("./checkpoints/" + run_name_pre + ".pckl", map_location='cuda:0'))
     model.eval()
