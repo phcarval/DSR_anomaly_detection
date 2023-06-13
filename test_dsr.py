@@ -44,7 +44,7 @@ def evaluate_model(model, model_normal, model_normal_top, model_decode, decoder_
         true_mask = crop_image(true_mask, img_dim)
         true_mask_cv = true_mask.detach().numpy()[0, :, :, :].transpose((1, 2, 0))
 
-        loss_b, loss_t, data_recon, embeddings_t, embeddings = model(gray_batch)
+        _, embeddings_t, embeddings = model(gray_batch)
         embeddings = embeddings.detach()
         embeddings_t = embeddings_t.detach()
 
@@ -53,8 +53,8 @@ def evaluate_model(model, model_normal, model_normal_top, model_decode, decoder_
 
         anomaly_embedding_copy = embeddings.clone()
         anomaly_embedding_top_copy = embeddings_t.clone()
-        recon_feat, recon_embeddings, _ = model_normal(anomaly_embedding_copy, embedder)
-        recon_feat_top, recon_embeddings_top, loss_b_top = model_normal_top(anomaly_embedding_top_copy,
+        _, recon_embeddings = model_normal(anomaly_embedding_copy, embedder)
+        _, recon_embeddings_top = model_normal_top(anomaly_embedding_top_copy,
                                                                             embedder_top)
 
         up_quantized_recon_t = model.upsample_t(recon_embeddings_top)
@@ -122,8 +122,7 @@ def train_on_device(obj_names, mvtec_path, run_basename):
         commitment_cost = 0.25
         decay = 0.99
         model_vq = DiscreteLatentModel(num_hiddens, num_residual_layers, num_residual_hiddens,
-                      num_embeddings, embedding_dim,
-                      commitment_cost, decay)
+                      num_embeddings, embedding_dim)
         model_vq.cuda()
         model_vq.load_state_dict(
             torch.load("./checkpoints/" + run_name_pre + ".pckl", map_location='cuda:0'))

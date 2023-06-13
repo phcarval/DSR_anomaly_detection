@@ -99,9 +99,8 @@ def train_upsampling_module(model, sub_res_model_hi, sub_res_model_lo, model_dec
 
             optimizer.zero_grad()
 
-            data_recon, embeddings_t, embeddings = model(input_image_aug)
+            _, embeddings_t, embeddings = model(input_image_aug)
 
-            data_recon = data_recon.detach()
             embeddings = embeddings.detach()
             embeddings_t = embeddings_t.detach()
 
