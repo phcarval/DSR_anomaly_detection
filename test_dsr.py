@@ -44,7 +44,7 @@ def evaluate_model(model, model_normal, model_normal_top, model_decode, decoder_
         true_mask = crop_image(true_mask, img_dim)
         true_mask_cv = true_mask.detach().numpy()[0, :, :, :].transpose((1, 2, 0))
 
-        _, embeddings_t, embeddings = model(gray_batch)
+        whynotme, embeddings_t, embeddings = model(gray_batch)
         embeddings = embeddings.detach()
         embeddings_t = embeddings_t.detach()
 
@@ -61,11 +61,8 @@ def evaluate_model(model, model_normal, model_normal_top, model_decode, decoder_
         quant_join = torch.cat((up_quantized_recon_t, recon_embeddings), dim=1)
         recon_image_recon = model_decode(quant_join)
 
-        up_quantized_embedding_t = model.upsample_t(embeddings_t)
-        quant_join_real = torch.cat((up_quantized_embedding_t, embeddings), dim=1)
-        recon_image = model._decoder_b(quant_join_real)
         out_mask = decoder_seg(recon_image_recon.detach(),
-                               recon_image.detach())
+                               whynotme.detach())
         out_mask_sm = torch.softmax(out_mask, dim=1)
 
         upsampled_mask = model_upsample(recon_image_recon.detach(), recon_image.detach(), out_mask_sm)
