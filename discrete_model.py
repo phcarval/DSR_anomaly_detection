@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 class VectorQuantizerEMA(nn.Module):
     # Source for the VectorQuantizerEMA module: https://github.com/zalandoresearch/pytorch-vq-vae
-    def __init__(self, num_embeddings, embedding_dim, commitment_cost, decay, epsilon=1e-5):
+    def __init__(self, num_embeddings, embedding_dim, decay, epsilon=1e-5):
         super(VectorQuantizerEMA, self).__init__()
 
         self._embedding_dim = embedding_dim
@@ -13,7 +13,6 @@ class VectorQuantizerEMA(nn.Module):
 
         self._embedding = nn.Embedding(self._num_embeddings, self._embedding_dim)
         self._embedding.weight.data.normal_()
-        self._commitment_cost = commitment_cost
 
         self.register_buffer('_ema_cluster_size', torch.zeros(num_embeddings))
         self._ema_w = nn.Parameter(torch.Tensor(num_embeddings, self._embedding_dim))
@@ -82,17 +81,11 @@ class VectorQuantizerEMA(nn.Module):
 
             self._embedding.weight = nn.Parameter(self._ema_w / self._ema_cluster_size.unsqueeze(1))
 
-        # Loss
-        e_latent_loss = F.mse_loss(quantized.detach(), inputs)
-        loss = self._commitment_cost * e_latent_loss
-
         # Straight Through Estimator
         quantized = inputs + (quantized - inputs).detach()
-        avg_probs = torch.mean(encodings, dim=0)
-        perplexity = torch.exp(-torch.sum(avg_probs * torch.log(avg_probs + 1e-10)))
 
         # convert quantized from BHWC -> BCHW
-        return loss, quantized.permute(0, 3, 1, 2).contiguous(), perplexity, encodings
+        return quantized.permute(0, 3, 1, 2).contiguous()
 
 
 

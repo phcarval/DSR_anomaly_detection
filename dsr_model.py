@@ -11,8 +11,8 @@ class SubspaceRestrictionModule(nn.Module):
 
     def forward(self, x, quantization):
         x = self.unet(x)
-        loss_b, quantized_b, perplexity_b, encodings_b = quantization(x)
-        return x, quantized_b, loss_b
+        quantized_b = quantization(x)
+        return x, quantized_b
 
 class SubspaceRestrictionNetwork(nn.Module):
     def __init__(self, in_channels=64, out_channels=64, base_width=64):

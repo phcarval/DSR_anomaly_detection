@@ -225,7 +225,7 @@ def train_on_device(obj_names, mvtec_path, out_path, lr, batch_size, epochs):
                     zt = model._pre_vq_conv_top(enc_t)
 
                     # Quantize the extracted features
-                    loss_t, quantized_t, perplexity_t, encodings_t = embedder_lo(zt)
+                    quantized_t = embedder_lo(zt)
 
                     # Generate feature-based anomalies on F_lo
                     anomaly_embedding_lo = generate_fake_anomalies_joined(zt, quantized_t,
@@ -240,8 +240,8 @@ def train_on_device(obj_names, mvtec_path, out_path, lr, batch_size, epochs):
                     zb = model._pre_vq_conv_bot(feat)
                     zb_real = model._pre_vq_conv_bot(feat_real)
                     # Quantize the upsampled features - F_hi
-                    loss_b, quantized_b, perplexity_b, encodings_b = embedder_hi(zb)
-                    loss_b, quantized_b_real, perplexity_b, encodings_b = embedder_hi(zb_real)
+                    quantized_b = embedder_hi(zb)
+                    quantized_b_real = embedder_hi(zb_real)
 
                     # Generate feature-based anomalies on F_hi
                     anomaly_embedding = generate_fake_anomalies_joined(zb, quantized_b,
@@ -267,8 +267,8 @@ def train_on_device(obj_names, mvtec_path, out_path, lr, batch_size, epochs):
                     anomaly_embedding_lo_copy = anomaly_embedding_lo.clone()
 
                 # Restore the features to normality with the Subspace restriction modules
-                recon_feat_hi, recon_embeddings_hi, loss_b = sub_res_model_hi(anomaly_embedding_hi_copy, embedder_hi)
-                recon_feat_lo, recon_embeddings_lo, loss_b_lo = sub_res_model_lo(anomaly_embedding_lo_copy, embedder_lo)
+                recon_feat_hi, recon_embeddings_hi = sub_res_model_hi(anomaly_embedding_hi_copy, embedder_hi)
+                recon_feat_lo, recon_embeddings_lo = sub_res_model_lo(anomaly_embedding_lo_copy, embedder_lo)
 
                 # Reconstruct the image from the anomalous features with the general appearance decoder
                 up_quantized_anomaly_t = model.upsample_t(anomaly_embedding_lo)
