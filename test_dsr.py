@@ -65,7 +65,7 @@ def evaluate_model(model, model_normal, model_normal_top, model_decode, decoder_
                                whynotme.detach())
         out_mask_sm = torch.softmax(out_mask, dim=1)
 
-        upsampled_mask = model_upsample(recon_image_recon.detach(), recon_image.detach(), out_mask_sm)
+        upsampled_mask = model_upsample(recon_image_recon.detach(), whynotme.detach(), out_mask_sm)
         out_mask_sm_up = torch.softmax(upsampled_mask, dim=1)
         out_mask_sm_up = crop_image(out_mask_sm_up, img_dim)
 
