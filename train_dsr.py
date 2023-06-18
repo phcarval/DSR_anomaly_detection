@@ -266,15 +266,27 @@ def train_on_device(obj_names, mvtec_path, out_path, lr, batch_size, epochs):
                     anomaly_embedding_hi_copy = anomaly_embedding_hi.clone()
                     anomaly_embedding_lo_copy = anomaly_embedding_lo.clone()
 
-                # Restore the features to normality with the Subspace restriction modules
-                recon_feat_hi, recon_embeddings_hi = sub_res_model_hi(anomaly_embedding_hi_copy, embedder_hi)
-                recon_feat_lo, recon_embeddings_lo = sub_res_model_lo(anomaly_embedding_lo_copy, embedder_lo)
-
                 # Reconstruct the image from the anomalous features with the general appearance decoder
                 up_quantized_anomaly_t = model.upsample_t(anomaly_embedding_lo)
                 quant_join_anomaly = torch.cat((up_quantized_anomaly_t, anomaly_embedding_hi), dim=1)
                 recon_image_general = model._decoder_b(quant_join_anomaly)
 
+
+                # Resize the ground truth anomaly map to closely match the augmented features
+                down_ratio_x_hi = int(anomaly_mask.shape[3] / quantized_b.shape[3])
+                anomaly_mask_hi = torch.nn.functional.max_pool2d(anomaly_mask,
+                                                                  (down_ratio_x_hi, down_ratio_x_hi)).float()
+                anomaly_mask_hi = torch.nn.functional.interpolate(anomaly_mask_hi, scale_factor=down_ratio_x_hi)
+                down_ratio_x_lo = int(anomaly_mask.shape[3] / quantized_t.shape[3])
+                anomaly_mask_lo = torch.nn.functional.max_pool2d(anomaly_mask,
+                                                                  (down_ratio_x_lo, down_ratio_x_lo)).float()
+                anomaly_mask_lo = torch.nn.functional.interpolate(anomaly_mask_lo, scale_factor=down_ratio_x_lo)
+                anomaly_mask = anomaly_mask_lo * use_both + (
+                            anomaly_mask_lo * use_lo + anomaly_mask_hi * use_hi) * (1.0 - use_both)
+
+                # Restore the features to normality with the Subspace restriction modules
+                recon_feat_hi, recon_embeddings_hi = sub_res_model_hi(anomaly_embedding_hi_copy, embedder_hi)
+                recon_feat_lo, recon_embeddings_lo = sub_res_model_lo(anomaly_embedding_lo_copy, embedder_lo)
 
                 # Reconstruct the image from the reconstructed features
                 # with the object-specific image reconstruction module
@@ -291,19 +303,6 @@ def train_on_device(obj_names, mvtec_path, out_path, lr, batch_size, epochs):
                 loss_feat_lo = torch.nn.functional.mse_loss(recon_feat_lo, quantized_t.detach())
                 loss_l2_recon_img = torch.nn.functional.mse_loss(in_image, recon_image_recon)
                 total_recon_loss = loss_feat_lo + loss_feat_hi + loss_l2_recon_img*10
-
-
-                # Resize the ground truth anomaly map to closely match the augmented features
-                down_ratio_x_hi = int(anomaly_mask.shape[3] / quantized_b.shape[3])
-                anomaly_mask_hi = torch.nn.functional.max_pool2d(anomaly_mask,
-                                                                  (down_ratio_x_hi, down_ratio_x_hi)).float()
-                anomaly_mask_hi = torch.nn.functional.interpolate(anomaly_mask_hi, scale_factor=down_ratio_x_hi)
-                down_ratio_x_lo = int(anomaly_mask.shape[3] / quantized_t.shape[3])
-                anomaly_mask_lo = torch.nn.functional.max_pool2d(anomaly_mask,
-                                                                  (down_ratio_x_lo, down_ratio_x_lo)).float()
-                anomaly_mask_lo = torch.nn.functional.interpolate(anomaly_mask_lo, scale_factor=down_ratio_x_lo)
-                anomaly_mask = anomaly_mask_lo * use_both + (
-                            anomaly_mask_lo * use_lo + anomaly_mask_hi * use_hi) * (1.0 - use_both)
 
 
                 # Calculate the segmentation loss with GT mask generated at low resolution.
